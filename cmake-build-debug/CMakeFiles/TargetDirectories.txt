@@ -1,0 +1,3 @@
+D:/Proga/Tarasuk/2/LR3/cmake-build-debug/CMakeFiles/LR3.dir
+D:/Proga/Tarasuk/2/LR3/cmake-build-debug/CMakeFiles/edit_cache.dir
+D:/Proga/Tarasuk/2/LR3/cmake-build-debug/CMakeFiles/rebuild_cache.dir
