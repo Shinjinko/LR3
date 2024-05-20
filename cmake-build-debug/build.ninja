@@ -61,6 +61,12 @@ build CMakeFiles/LR3.dir/task1.c.obj: C_COMPILER__LR3_Debug D$:/Proga/Tarasuk/2/
   OBJECT_DIR = CMakeFiles\LR3.dir
   OBJECT_FILE_DIR = CMakeFiles\LR3.dir
 
+build CMakeFiles/LR3.dir/task2old.c.obj: C_COMPILER__LR3_Debug D$:/Proga/Tarasuk/2/LR3/task2old.c || cmake_object_order_depends_target_LR3
+  DEP_FILE = CMakeFiles\LR3.dir\task2old.c.obj.d
+  FLAGS = -g -fdiagnostics-color=always -std=gnu11
+  OBJECT_DIR = CMakeFiles\LR3.dir
+  OBJECT_FILE_DIR = CMakeFiles\LR3.dir
+
 build CMakeFiles/LR3.dir/task2.c.obj: C_COMPILER__LR3_Debug D$:/Proga/Tarasuk/2/LR3/task2.c || cmake_object_order_depends_target_LR3
   DEP_FILE = CMakeFiles\LR3.dir\task2.c.obj.d
   FLAGS = -g -fdiagnostics-color=always -std=gnu11
@@ -75,7 +81,7 @@ build CMakeFiles/LR3.dir/task2.c.obj: C_COMPILER__LR3_Debug D$:/Proga/Tarasuk/2/
 #############################################
 # Link the executable LR3.exe
 
-build LR3.exe: C_EXECUTABLE_LINKER__LR3_Debug CMakeFiles/LR3.dir/main.c.obj CMakeFiles/LR3.dir/task1.c.obj CMakeFiles/LR3.dir/task2.c.obj
+build LR3.exe: C_EXECUTABLE_LINKER__LR3_Debug CMakeFiles/LR3.dir/main.c.obj CMakeFiles/LR3.dir/task1.c.obj CMakeFiles/LR3.dir/task2old.c.obj CMakeFiles/LR3.dir/task2.c.obj
   FLAGS = -g
   LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\LR3.dir

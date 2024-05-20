@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "tasks.h"
+#include <windows.h>
 
 int main(int argc, char** argv)
 {
-    if (argc > 2)
+    SetConsoleOutputCP(CP_UTF8);
+    if (argc > 3)
     {
         printf("Wrong arguments!");
         exit(0);
@@ -20,7 +22,7 @@ int main(int argc, char** argv)
                 task1();
                 break;
             case 2:
-                task2();
+                task2(argv[2]);
                 break;
             case 0:
                 printf("Bye!");
@@ -30,7 +32,7 @@ int main(int argc, char** argv)
                 scanf("%i", &num);
                 break;
         }
-        printf("\nSelect a number of the task or write '0' to exit: ");
+        printf("\nВыберите номер задачи или напишите \"0\" для выхода: ");
         scanf("%d", &num);
     }
 }

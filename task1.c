@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <ctype.h>
+#include <stdlib.h>
 
 struct point
 {
@@ -7,7 +9,7 @@ struct point
 
 union code
 {
-    struct point p;
+    int p;
     struct
     {
         unsigned a0:8;
@@ -17,11 +19,25 @@ union code
     } byte;
 };
 
+int is_number_1(const char *str)
+{
+    for (int i = 0; str[i] != '\0'; i++)
+    {
+        if (!isdigit(str[i]))
+        {
+            printf("Введённый элемент не является числом. Повторный ввод: ");
+            return 1;
+        }
+    }
+    return 0;
+}
+
 void task1(void)
 {
-    printf("Write a number: \n");
-    scanf("%i", &number);
+    printf("Введите число: \n");
+    char test[10];
+    do scanf("%s", &test); while(is_number_1(test));
     union code c;
-    c.p = number;
-    printf("The highest byte of the number (in 10th): %d", c.byte.a3);
+    c.p = atoi(test);
+    printf("Старший байт числа равен (в десятичной системе): %d", c.byte.a3);
 }

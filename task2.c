@@ -1,149 +1,269 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
-#define REG_NUM_LENGTH 10
-#define MODEL_LENGTH 20
-#define VIOLATION_TYPES 5
-#define MAX_CARS 100
-
-typedef enum
-{
-    SPEEDING,
-    PARKING,
-    RED_LIGHT,
-    DRUNK,
-    NO_SEAT_BELT
-} ViolationType;
+#define VIOLATIONS_LENGTH 15
+#define REG_NUM_LENGTH 20
+#define MODEL_LENGTH 25
 
 typedef struct
 {
-    ViolationType type;
-    int fine_amount;
-} Violation;
+    int fine;
+    int type;
+} violation;
 
 typedef struct
 {
     char reg_num[REG_NUM_LENGTH];
     char* model;
-    Violation violations[VIOLATION_TYPES];
+    violation* violations;
 } CAr;
 
-CAr cars[MAX_CARS];
-int num_cars = 0;
+int is_file_empty(const char* file_name)
+{
+    FILE *file = fopen(file_name, "r");
+    int c = fgetc(file);
+    fclose(file);
 
-void add_car() {
-    if (num_cars < MAX_CARS) {
-        CAr car;
-        printf("Enter registration number: ");
-        scanf("%s", car.reg_num);
-        car.model = (char*)malloc(MODEL_LENGTH * sizeof(char));
-        printf("Enter model: ");
-        scanf("%s", car.model);
-
-        for (int i = 0; i < VIOLATION_TYPES; i++) {
-            car.violations[i].type = (ViolationType)i;
-            printf("Enter fine amount for violation %d: ", i+1);
-            scanf("%d", &car.violations[i].fine_amount);
-        }
-
-        cars[num_cars++] = car;
-    } else {
-        printf("Maximum number of cars reached.\n");
-    }
+    if (c == EOF) return 1;
+    else return 0;
 }
 
-void delete_car(int index) {
-    if (index >= 0 && index < num_cars) {
-        free(cars[index].model);
-        for (int i = index; i < num_cars - 1; i++) {
-            cars[i] = cars[i + 1];
+int is_number(const char *str)
+{
+    for (int i = 0; str[i] != '\0'; i++)
+    {
+        if (!isdigit(str[i]))
+        {
+            printf("Введённый элемент не является числом. Повторный ввод: ");
+            return 1;
         }
-        num_cars--;
-    } else {
-        printf("Invalid index.\n");
     }
+    return 0;
 }
 
-void print_cars() {
-    for (int i = 0; i < num_cars; i++)
+void instruction()
+{
+    FILE* file = fopen("instructions.txt", "r");
+
+    char buffer[100];
+    while (fgets(buffer, 100, file) != NULL)
+    {
+        printf("%s ", buffer);
+    }
+
+    fclose(file);
+}
+
+int check_reg_num(char *car, CAr *another_cars, const int* num)
+{
+    for(int i = 0; i < *num; i++)
+    {
+        if(strcmp(car, another_cars[i].reg_num) == 0)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int Vytautas_choice (int mode, int num_car, char* reg_num, int* fine)
+{
+    int choise;
+    switch (mode)
+    {
+        case 1:
+            printf("Регистрационный номер автомобиля под номером %d не уникален! "
+                   "Закрыть программу или переписать? 1/0\n", num_car);
+            scanf("%d", &choise);
+            if (choise) return 1;
+            else
+            {
+                printf("Введите новый регистрационный номер: ");
+                scanf("%s", reg_num);
+                return 0;
+            }
+        case 2:
+            printf("Отрицательное значение штрафа у автомобиля под номером %d!\n"
+                   "Закрыть программу или переписать? 1/0\n", num_car);
+            scanf("%d", &choise);
+            if (choise) return 1;
+            else
+            {
+                printf("Введите новый размер штрафа: ");
+                scanf("%d", fine);
+                return 0;
+            }
+        default: break;
+    }
+    return 5;
+}
+
+void from_file (char* file_name, int *num_cars, CAr **cars, char **violations_1, int* num_violations)
+{
+    FILE *file = fopen(file_name, "r");
+    if (file == NULL)
+    {
+        printf("Ошибка открытия файла!\n");
+        return;
+    }
+
+    if(is_file_empty(file_name))
+    {
+        printf("Файл пуст. Пожалуйста, прочтите инструкцию перед его заполнением и перезапустите программу. Инструкция:\n\n");
+        instruction();
+        exit(0);
+    }
+
+    *num_cars = 0;
+
+    fscanf(file, "%d", num_violations);
+    (*cars) = (CAr*)malloc((*num_cars + 1) * sizeof(CAr));
+
+    for(int i = 0; i < *num_violations; i++)
+    {
+        violations_1[i] = (char*)malloc(VIOLATIONS_LENGTH * sizeof(char));
+        fscanf(file, "%s", violations_1[i]);
+    }
+
+    while (fscanf(file, "%s", (*cars)[*num_cars].reg_num) != EOF)
+    {
+        while(check_reg_num((*cars)[*num_cars].reg_num, (*cars), num_cars))
+        {
+            if(Vytautas_choice (1, *num_cars, (*cars)[*num_cars].reg_num, 0)) exit(0);
+        }
+        (*cars)[*num_cars].model = (char*)malloc(MODEL_LENGTH * sizeof(char));
+        fseek(file, 1, SEEK_CUR);
+        fgets((*cars)[*num_cars].model, MODEL_LENGTH, file);
+
+        (*cars)[*num_cars].violations = (violation*)malloc(*num_violations * sizeof(violation));
+        for (int j = 0; j < *num_violations; j++)
+        {
+            fscanf(file, "%d %d", &(*cars)[*num_cars].violations[j].type, &(*cars)[*num_cars].violations[j].fine);
+            while ((*cars)[*num_cars].violations[j].fine < 0)
+            {
+                if(Vytautas_choice (2, *num_cars, (*cars)[*num_cars].reg_num, &(*cars)[*num_cars].violations[j].fine)) exit(0);
+            }
+        }
+
+        *num_cars += 1;
+        (*cars) = (CAr*)realloc((*cars), (*num_cars + 1) * sizeof(CAr));
+    }
+    fclose(file);
+}
+
+void to_file(const char* file_name, const int *num_cars, CAr *cars, char** violations, const int* max_violations) {
+    FILE *file = fopen(file_name, "w");
+
+    rewind(file);
+    fprintf(file, "%d\n", *max_violations);
+    for(int i = 0; i < *max_violations; i++)
+    {
+        fprintf(file, "%s\n", violations[i]);
+    }
+
+    for (int i = 0; i < *num_cars; i++)
+    {
+        fprintf(file, "%s\n%s", cars[i].reg_num, cars[i].model);
+        for (int j = 0; j < *max_violations; j++)
+        {
+            fprintf(file, "%d %d\n", cars[i].violations[j].type, cars[i].violations[j].fine);
+        }
+    }
+
+    fclose(file);
+}
+
+void print_cars(const int *num_cars, CAr* cars, char** violations, const int* max_violations)
+{
+    for (int i = 0; i < *num_cars; i++)
     {
         printf("CAr %d:\n", i+1);
-        printf("Registration number: %s\n", cars[i].reg_num);
-        printf("Model: %s\n", cars[i].model);
-        for (int j = 0; j < VIOLATION_TYPES; j++) {
-            printf("Violation %d: Type %d, Fine amount %d\n", j+1, cars[i].violations[j].type + 1, cars[i].violations[j].fine_amount);
+        printf("Регистрационный номер: %s\n", cars[i].reg_num);
+        printf("Модель: %s\n", cars[i].model);
+        for (int j = 0; j < *max_violations; j++)
+        {
+            printf("Нарушение %d: Кодовое имя - %s, Штраф: %d\n", j+1, violations[cars[i].violations[j].type], cars[i].violations[j].fine);
         }
         printf("\n");
     }
 }
 
-void from_file(const char* fileName) {
-    FILE *file = fopen(fileName, "r");
-    if (file == NULL) {
-        printf("Error opening file.\n");
-        return;
-    }
-
-    num_cars = 0;
-
-    while (fscanf(file, "%s", cars[num_cars].reg_num) == 1)
-    {
-        cars[num_cars].model = (char*)malloc(MODEL_LENGTH * sizeof(char));
-        fscanf(file, "%s", cars[num_cars].model);
-
-        for (int j = 0; j < VIOLATION_TYPES; j++)
-        {
-            fscanf(file, "%d %d", &cars[num_cars].violations[j].type, &cars[num_cars].violations[j].fine_amount);
-        }
-
-        num_cars++;
-    }
-
-    fclose(file);
-}
-
-void to_file(const char* file_name) {
-    FILE *file = fopen(file_name, "w");
-    if (file == NULL) {
-        printf("Error opening file.\n");
-        return;
-    }
-
-    for (int i = 0; i < num_cars; i++) {
-        fprintf(file, "%s %s\n", cars[i].reg_num, cars[i].model);
-        for (int j = 0; j < VIOLATION_TYPES; j++) {
-            fprintf(file, "%d %d\n", cars[i].violations[j].type, cars[i].violations[j].fine_amount);
-        }
-    }
-
-    fclose(file);
-}
-
-void main_action()
+void add_car(int *num_cars, CAr** cars, char** violations, const int* max_violations)
 {
-    int violationCount[VIOLATION_TYPES] = {0};
-
-    for (int i = 0; i < num_cars; i++)
+    CAr car;
+    car.model = (char*)malloc(MODEL_LENGTH * sizeof(char));
+    printf("Введите регистрационный номер: ");
+    scanf("%s", car.reg_num);
+    while(check_reg_num(car.reg_num, (*cars), num_cars))
     {
-        for (int j = 0; j < VIOLATION_TYPES; j++)
+        printf("Регистрационный номер не уникален. Введите другое значение: \n");
+        scanf("%s", car.reg_num);
+    }
+    fflush(stdin);
+    printf("Введите модель: ");
+    getchar();
+    fgets(car.model, MODEL_LENGTH, stdin);
+
+    car.violations = (violation*) malloc(*max_violations * sizeof(violation));
+    for (int i = 0; i < *max_violations; i++)
+    {
+        car.violations[i].type = i;
+        printf("Введите штраф за %s: ", violations[i]);
+        scanf("%d", &car.violations[i].fine);
+        while (car.violations[i].fine < 0)
         {
-            if (cars[i].violations[j].fine_amount > 0)
+            printf("Отрицательное значение штрафа! Введите новое значение: ");
+            scanf("%d", &car.violations[i].fine);
+        }
+    }
+    (*cars)[*num_cars] = car;
+    *num_cars += 1;
+    (*cars) = (CAr*)realloc((*cars), (*num_cars + 1) * sizeof(CAr));
+}
+
+void delete_car(int index, int *num_cars, CAr **cars, const int* num_violations)
+{
+    if (index >= 0 && index < *num_cars)
+    {
+        free((*cars)[index].model);
+        for (int i = index; i < *num_cars - 1; i++)
+        {
+            (*cars)[i] = (*cars)[i + 1];
+        }
+        *num_cars -= 1;
+        printf("Удалён автомобиль с индексом: %d\n", index + 1);
+        (*cars) = (CAr*)realloc((*cars), (*num_cars * sizeof(CAr)) + *num_violations);
+    }
+    else
+    {
+        printf("Неверный индекс.\n");
+    }
+}
+
+void sort_violation (const int *num_cars, CAr* cars, const int* max_violations, int *violationCount, int index_v[*max_violations])
+{
+
+    for (int i = 0; i < *num_cars; i++)
+    {
+        for (int j = 0; j < *max_violations; j++)
+        {
+            if (cars[i].violations[j].fine > 0)
             {
                 violationCount[cars[i].violations[j].type]++;
             }
         }
     }
-    int index[VIOLATION_TYPES];
 
-    for (int i = 0; i < VIOLATION_TYPES; i++)
+    for (int i = 0; i < *max_violations; i++)
     {
-        index[i] = i;
+        index_v[i] = i;
     }
 
-    // Сортируем типы нарушений по убыванию количества
-    for (int i = 0; i < VIOLATION_TYPES - 1; i++)
+    for (int i = 0; i < *max_violations - 1; i++)
     {
-        for (int j = i + 1; j < VIOLATION_TYPES; j++)
+        for (int j = i + 1; j < *max_violations; j++)
         {
             if (violationCount[i] < violationCount[j])
             {
@@ -151,55 +271,129 @@ void main_action()
                 violationCount[i] = violationCount[j];
                 violationCount[j] = temp;
 
-                int tempIndex = index[i];
-                index[i] = index[j];
-                index[j] = tempIndex;
+                int tempIndex = index_v[i];
+                index_v[i] = index_v[j];
+                index_v[j] = tempIndex;
             }
         }
     }
+}
 
-    printf("Violation types sorted by number of cars involved:\n");
-    for (int i = 0; i < VIOLATION_TYPES; i++)
+void print_sort(int* violation_count, const int* max_violations, char** violations, const int* index)
+{
+
+    printf("Нарушения отсортированы от большего количества вовлечённых к меньшим:\n");
+    for (int i = 0; i < *max_violations; i++)
     {
-        printf("Violation Type %d: %d cars\n", index[i] + 1, violationCount[i]);
+        if (violation_count[i] == 0) continue;
+        printf("Кодовое имя нарушения %s: вовлечено %d машин\n", violations[index[i]], violation_count[i]);
     }
 }
 
-void task2()
+void exceeding_fine (int *num_cars, CAr* cars, int* max_violations)
 {
-    from_file("D:\\Task.txt");
+    char max_fine_c[10];
+    printf("Введите максимальный суммарный штраф: ");
+    do scanf("%s", max_fine_c); while(is_number(max_fine_c));
+    int max_fine = atoi(max_fine_c);
 
-    int choice;
+    int is_fine = 0;
+    int amount_fine;
+    int *fines = (int*)malloc(is_fine * sizeof(int));
+    for(int i = 0; i < *num_cars; i++)
+    {
+        amount_fine = 0;
+        for (int y = 0; y < 5; y++)
+            amount_fine += cars[i].violations[y].fine;
+        if (amount_fine > max_fine)
+        {
+            is_fine++;
+            fines = (int*)realloc(fines, is_fine * sizeof(int));
+            fines[is_fine - 1] = i;
+        }
+    }
+    if(is_fine == 0) printf("У существующих в списке автомобилей нет превышения штрафа.\n");
+    else
+        while (is_fine != 0)
+        {
+            delete_car(fines[is_fine - 1], num_cars, &cars, max_violations);
+            is_fine--;
+        }
+    free(fines);
+}
+
+
+void menu()
+{
+    printf("1. Прочитать инструкцию заполнения файла к заданию;\n"
+           "2. Вывести меню программы;\n"
+           "3. Вывести все автомобили;\n"
+           "4. Добавить автомобиль;\n"
+           "5. Удалить автомобиль;\n"
+           "6. Сортировка нарушений;\n"
+           "7. Удаление превышений;\n"
+           "0. Выйти.\n");
+}
+
+void task2(char *file_name)
+{
+    CAr *cars = NULL;
+    int num_violations = 0;
+    FILE *file = fopen(file_name, "r");
+    fscanf(file, "%d", &num_violations);
+    fclose(file);
+    int num_cars = 0;
+    char **violations = (char**) malloc(num_violations * sizeof(char*));
+    from_file(file_name, &num_cars, &cars, violations, &num_violations);
+    int *violationCount = calloc(num_violations, sizeof(int));
+    int index_v[num_violations];
+
+    menu();
+
+    char choise[10];
+    char index[10];
+
     do {
-        printf("1. Add a car\n");
-        printf("2. Delete a car\n");
-        printf("3. Print all cars\n");
-        printf("4. Write statistic\n");
-        printf("5. Exit\n");
-        printf("Enter your choice: ");
-        scanf("%d", &choice);
-        int index;
+        printf("\nВведите предпочитаемый пункт из меню или '2', чтобы вывести его: ");
+        do scanf("%s", choise); while(is_number(choise));
 
-        switch(choice) {
-            case 1:
-                add_car();
-                break;
+        switch (atoi(choise))
+        {
             case 2:
-                printf("Enter index of car to delete: ");
-                scanf("%d", &index);
-                delete_car(index - 1);
+                menu();
+                break;
+            case 1:
+                instruction();
                 break;
             case 3:
-                print_cars();
+                print_cars(&num_cars, cars, violations, &num_violations);
                 break;
-            case 5:
-                to_file("D:\\Task.txt");
+            case 0:
+                to_file(file_name, &num_cars, cars, violations, &num_violations);
                 break;
             case 4:
-                main_action();
+                add_car(&num_cars, &cars, violations, &num_violations);
+                break;
+            case 6:
+                sort_violation(&num_cars, cars, &num_violations, violationCount, index_v);
+                print_sort(violationCount, &num_violations, violations, index_v);
+                break;
+            case 5:
+                printf("Введите индекс нужного автомобиля: ");
+                do scanf("%s", &index); while(is_number(index));
+                delete_car(atoi(index) - 1, &num_cars, &cars, &num_violations);
+                break;
+            case 7:
+                exceeding_fine(&num_cars, cars, &num_violations);
                 break;
             default:
-                printf("Invalid choice. Please try again.\n");
+                printf("Попробуйте ещё раз.");
         }
-    } while (choice != 5);
+    }
+
+    while(atoi(choise) != 0);
+
+    free(violationCount);
+    free(violations);
+    free(cars);
 }
