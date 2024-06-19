@@ -47,8 +47,8 @@ void instruction()
 {
     FILE* file = fopen("instructions.txt", "r");
 
-    char buffer[100];
-    while (fgets(buffer, 100, file) != NULL)
+    char buffer[240];
+    while (fgets(buffer, 240, file) != NULL)
     {
         printf("%s ", buffer);
     }
@@ -165,7 +165,7 @@ void to_file(const char* file_name, const int *num_cars, CAr *cars, char** viola
 
     for (int i = 0; i < *num_cars; i++)
     {
-        fprintf(file, "%s\n%s", cars[i].reg_num, cars[i].model);
+        fprintf(file, "%s %s", cars[i].reg_num, cars[i].model);
         for (int j = 0; j < *max_violations; j++)
         {
             fprintf(file, "%d %d\n", cars[i].violations[j].type, cars[i].violations[j].fine);
@@ -203,7 +203,6 @@ void add_car(int *num_cars, CAr** cars, char** violations, const int* max_violat
     }
     fflush(stdin);
     printf("Введите модель: ");
-    getchar();
     fgets(car.model, MODEL_LENGTH, stdin);
 
     car.violations = (violation*) malloc(*max_violations * sizeof(violation));
@@ -303,7 +302,7 @@ void exceeding_fine (int *num_cars, CAr* cars, int* max_violations)
     for(int i = 0; i < *num_cars; i++)
     {
         amount_fine = 0;
-        for (int y = 0; y < 5; y++)
+        for (int y = 0; y < *max_violations; y++)
             amount_fine += cars[i].violations[y].fine;
         if (amount_fine > max_fine)
         {
@@ -345,7 +344,7 @@ void task2(char *file_name)
     int num_cars = 0;
     char **violations = (char**) malloc(num_violations * sizeof(char*));
     from_file(file_name, &num_cars, &cars, violations, &num_violations);
-    int *violationCount = calloc(num_violations, sizeof(int));
+    int *violation_count = calloc(num_violations, sizeof(int));
     int index_v[num_violations];
 
     menu();
@@ -375,8 +374,8 @@ void task2(char *file_name)
                 add_car(&num_cars, &cars, violations, &num_violations);
                 break;
             case 6:
-                sort_violation(&num_cars, cars, &num_violations, violationCount, index_v);
-                print_sort(violationCount, &num_violations, violations, index_v);
+                sort_violation(&num_cars, cars, &num_violations, violation_count, index_v);
+                print_sort(violation_count, &num_violations, violations, index_v);
                 break;
             case 5:
                 printf("Введите индекс нужного автомобиля: ");
@@ -393,7 +392,7 @@ void task2(char *file_name)
 
     while(atoi(choise) != 0);
 
-    free(violationCount);
+    free(violation_count);
     free(violations);
     free(cars);
 }

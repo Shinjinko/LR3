@@ -25,10 +25,10 @@ int main(int argc, char** argv)
                 task2(argv[2]);
                 break;
             case 0:
-                printf("Bye!");
+                printf("Пока-пока!");
                 exit(0);
             default:
-                printf("Error 404");
+                printf("Неверный выбор!");
                 scanf("%i", &num);
                 break;
         }
